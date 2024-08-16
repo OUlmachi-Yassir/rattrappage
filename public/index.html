@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>School Management</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
+  <style>
+    .popup {
+      display: none;
+    }
+    .popup.active {
+      display: flex;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans">
   <div class="container mx-auto p-6">
@@ -14,53 +22,24 @@
     <section class="mb-12">
       <h2 class="text-3xl font-semibold mb-4">Students</h2>
       <div id="students" class="mb-4"></div>
-      <h3 class="text-2xl font-medium mb-2">Add Student</h3>
-      <form id="addStudentForm" class="bg-white p-6 rounded-lg shadow-md">
-        <input type="text" id="studentNom" placeholder="Name" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <input type="text" id="studentPrenom" placeholder="Surname" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <input type="email" id="studentEmail" placeholder="Email" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button type="submit"
-          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Student</button>
-      </form>
+      <button onclick="showAddStudentPopup()"
+        class="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">Add Student</button>
     </section>
 
     <!-- Teachers Section -->
     <section class="mb-12">
       <h2 class="text-3xl font-semibold mb-4">Teachers</h2>
       <div id="teachers" class="mb-4"></div>
-      <h3 class="text-2xl font-medium mb-2">Add Teacher</h3>
-      <form id="addTeacherForm" class="bg-white p-6 rounded-lg shadow-md">
-        <input type="text" id="teacherNom" placeholder="Name" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <input type="text" id="teacherPrenom" placeholder="Surname" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <input type="email" id="teacherEmail" placeholder="Email" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button type="submit"
-          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Teacher</button>
-      </form>
+      <button onclick="showAddTeacherPopup()"
+        class="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">Add Teacher</button>
     </section>
 
     <!-- Courses Section -->
     <section class="mb-12">
       <h2 class="text-3xl font-semibold mb-4">Courses</h2>
       <div id="courses" class="mb-4"></div>
-      <h3 class="text-2xl font-medium mb-2">Add Course</h3>
-      <form id="addCourseForm" class="bg-white p-6 rounded-lg shadow-md">
-        <input type="text" id="courseTitre" name="titre" placeholder="Title" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <textarea id="courseDescription" name="description" placeholder="Description" rows="4"
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-        <select id="courseEnseignantId" name="enseignant_id" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <!-- Teacher options will be populated by JavaScript -->
-        </select>
-        <button type="submit"
-          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Course</button>
-      </form>
+      <button onclick="showAddCoursePopup()"
+        class="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">Add Course</button>
     </section>
 
     <!-- Enrollment Section -->
@@ -79,11 +58,95 @@
           class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Enroll</button>
       </form>
     </section>
-
-
-    
   </div>
 
+  <!-- Edit Student Popup -->
+  <div id="editStudentPopup" class="popup fixed inset-0 items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+      <h3 class="text-2xl font-semibold mb-4">Edit Student</h3>
+      <form id="editStudentForm">
+        <input type="hidden" id="editStudentId">
+        <input type="text" id="editStudentNom" placeholder="Name" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="text" id="editStudentPrenom" placeholder="Surname" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="email" id="editStudentEmail" placeholder="Email" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+        <button type="button" id="closeEditStudentPopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Student Popup -->
+  <div id="addStudentPopup" class="popup fixed inset-0 items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+      <h3 class="text-2xl font-semibold mb-4">Add Student</h3>
+      <form id="addStudentForm">
+        <input type="text" id="studentNom" placeholder="Name" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="text" id="studentPrenom" placeholder="Surname" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="email" id="studentEmail" placeholder="Email" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add</button>
+        <button type="button" id="closeAddStudentPopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Teacher Popup -->
+  <div id="addTeacherPopup" class="popup fixed inset-0 items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+      <h3 class="text-2xl font-semibold mb-4">Add Teacher</h3>
+      <form id="addTeacherForm">
+        <input type="text" id="teacherNom" placeholder="Name" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="text" id="teacherPrenom" placeholder="Surname" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="email" id="teacherEmail" placeholder="Email" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add</button>
+        <button type="button" id="closeAddTeacherPopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Teacher Popup -->
+  <div id="editTeacherPopup" class="popup fixed inset-0 items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+      <h3 class="text-2xl font-semibold mb-4">Edit Teacher</h3>
+      <form id="editTeacherForm">
+        <input type="hidden" id="editTeacherId">
+        <input type="text" id="editTeacherNom" placeholder="Name" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="text" id="editTeacherPrenom" placeholder="Surname" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="email" id="editTeacherEmail" placeholder="Email" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+        <button type="button" id="closeEditTeacherPopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Course Popup -->
+  <div id="addCoursePopup" class="popup fixed inset-0 items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+      <h3 class="text-2xl font-semibold mb-4">Add Course</h3>
+      <form id="addCourseForm">
+        <input type="text" id="courseTitre" placeholder="Course Title" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="text" id="courseDescription" placeholder="Description" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add</button>
+        <button type="button" id="closeAddCoursePopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Course Popup -->
+  <div id="editCoursePopup" class="popup fixed inset-0 items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+      <h3 class="text-2xl font-semibold mb-4">Edit Course</h3>
+      <form id="editCourseForm">
+        <input type="hidden" id="editCourseId">
+        <input type="text" id="editCourseTitre" placeholder="Course Title" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <input type="text" id="editCourseDescription" placeholder="Description" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+        <button type="button" id="closeEditCoursePopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  
+  
   <script src="script.js"></script>
 </body>
 </html>

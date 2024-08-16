@@ -1,198 +1,267 @@
+// Define global variables for data
+let students = [];
+let teachers = [];
+let courses = [];
+
 // Function to fetch and display data
 async function fetchData() {
   try {
-      const [studentsRes, teachersRes, coursesRes] = await Promise.all([
-          fetch('/students'),
-          fetch('/teachers'),
-          fetch('/courses')
-      ]);
+    const [studentsRes, teachersRes, coursesRes] = await Promise.all([
+      fetch('/students'),
+      fetch('/teachers'),
+      fetch('/courses')
+    ]);
 
-      const students = await studentsRes.json();
-      const teachers = await teachersRes.json();
-      const courses = await coursesRes.json();
+    students = await studentsRes.json();
+    teachers = await teachersRes.json();
+    courses = await coursesRes.json();
+    console.log('Courses:', courses);
 
-      // Display students
-      const studentsDiv = document.getElementById('students');
-      studentsDiv.innerHTML = '<ul class="space-y-2">' + students.map(student =>
-        `<li class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md">
-          <div class="text-lg font-medium">${student.nom} ${student.prenom} (${student.email})</div>
-          <div class="space-x-2">
-            <button onclick="editStudent(${student.id}, '${student.nom}', '${student.prenom}', '${student.email}')"
-              class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500">Edit</button>
-            <button onclick="deleteStudent(${student.id})"
-              class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Delete</button>
-          </div>
-        </li>`
-      ).join('') + '</ul>';
+    // Display students
+    const studentsContainer = document.getElementById('students');
+    studentsContainer.innerHTML = students.map(student => `
+      <div class="bg-white p-4 mb-2 rounded shadow-md">
+        <h3 class="text-xl font-semibold">${student.nom} ${student.prenom}</h3>
+        <p>${student.email}</p>
+        <button onclick="showEditStudentPopup(${student.id})" class="py-1 px-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 mt-2">Edit</button>
+      </div>
+    `).join('');
 
-      // Display teachers
-      const teachersDiv = document.getElementById('teachers');
-      teachersDiv.innerHTML = '<ul class="space-y-2">' + teachers.map(teacher =>
-        `<li class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md">
-          <div class="text-lg font-medium">${teacher.nom} ${teacher.prenom} (${teacher.email})</div>
-          <div class="space-x-2">
-            <button onclick="editTeacher(${teacher.id}, '${teacher.nom}', '${teacher.prenom}', '${teacher.email}')"
-              class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500">Edit</button>
-            <button onclick="deleteTeacher(${teacher.id})"
-              class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Delete</button>
-          </div>
-        </li>`
-      ).join('') + '</ul>';
+    // Display teachers
+    const teachersContainer = document.getElementById('teachers');
+    teachersContainer.innerHTML = teachers.map(teacher => `
+      <div class="bg-white p-4 mb-2 rounded shadow-md">
+        <h3 class="text-xl font-semibold">${teacher.nom} ${teacher.prenom}</h3>
+        <p>${teacher.email}</p>
+        <button onclick="showEditTeacherPopup(${teacher.id})" class="py-1 px-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 mt-2">Edit</button>
+      </div>
+    `).join('');
 
-      // Display courses
-      const coursesDiv = document.getElementById('courses');
-      coursesDiv.innerHTML = '<ul class="space-y-2">' + courses.map(course =>
-        `<li class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md">
-          <div class="text-lg font-medium">${course.titre} (${course.description})</div>
-          <div class="space-x-2">
-            <button onclick="editCourse(${course.id}, '${course.titre}', '${course.description}', ${course.enseignant_id})"
-              class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500">Edit</button>
-            <button onclick="deleteCourse(${course.id})"
-              class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Delete</button>
-          </div>
-        </li>`
-      ).join('') + '</ul>';
+    // Display courses
+    const coursesContainer = document.getElementById('courses');
+    coursesContainer.innerHTML = courses.map(course => `
+      <div class="bg-white p-4 mb-2 rounded shadow-md">
+        <h3 class="text-xl font-semibold">${course.titre}</h3>
+        <p>${course.description}</p>
+        <p>${getTeacherNameById(course.enseignant_id)}</p>
+        <button onclick="showEditCoursePopup(${course.id})" class="py-1 px-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 mt-2">Edit</button>
+      </div>
+    `).join('');
 
-      // Populate enrollment options
-      const studentSelect = document.getElementById('enrollStudentId');
-      studentSelect.innerHTML = students.map(student => 
-          `<option value="${student.id}">${student.nom} ${student.prenom}</option>`
-      ).join('');
-
-      const courseSelect = document.getElementById('enrollCourseId');
-      courseSelect.innerHTML = courses.map(course => 
-          `<option value="${course.id}">${course.titre}</option>`
-      ).join('');
-
-      // Populate teacher options for adding courses
-      const teacherSelect = document.getElementById('courseEnseignantId');
-      teacherSelect.innerHTML = teachers.map(teacher => 
-          `<option value="${teacher.id}">${teacher.nom} ${teacher.prenom}</option>`
-      ).join('');
-
+    // Populate enrollment dropdowns
+    const enrollStudentId = document.getElementById('enrollStudentId');
+    const enrollCourseId = document.getElementById('enrollCourseId');
+    enrollStudentId.innerHTML = students.map(student => `<option value="${student.id}">${student.nom} ${student.prenom}</option>`).join('');
+    enrollCourseId.innerHTML = courses.map(course => `<option value="${course.id}">${course.titre}</option>`).join('');
   } catch (error) {
-      console.error('Error fetching data:', error);
+    console.error('Error fetching data:', error);
   }
 }
 
-// Function to handle form submissions
+// Function to get teacher name by ID
+function getTeacherNameById(id) {
+  const teacher = teachers.find(teacher => teacher.id === id);
+  return teacher ? `${teacher.nom} ${teacher.prenom}` : 'Unknown';
+}
+
+// Show popup functions
+function showAddStudentPopup() {
+  document.getElementById('addStudentPopup').classList.add('active');
+}
+
+function showEditStudentPopup(id) {
+  // Populate form with existing data
+  const student = students.find(s => s.id === id);
+  document.getElementById('editStudentId').value = student.id;
+  document.getElementById('editStudentNom').value = student.nom;
+  document.getElementById('editStudentPrenom').value = student.prenom;
+  document.getElementById('editStudentEmail').value = student.email;
+  
+  document.getElementById('editStudentPopup').classList.add('active');
+}
+
+function showAddTeacherPopup() {
+  document.getElementById('addTeacherPopup').classList.add('active');
+}
+
+function showEditTeacherPopup(id) {
+  // Populate form with existing data
+  const teacher = teachers.find(t => t.id === id);
+  document.getElementById('editTeacherId').value = teacher.id;
+  document.getElementById('editTeacherNom').value = teacher.nom;
+  document.getElementById('editTeacherPrenom').value = teacher.prenom;
+  document.getElementById('editTeacherEmail').value = teacher.email;
+  
+  document.getElementById('editTeacherPopup').classList.add('active');
+}
+
+function showAddCoursePopup() {
+  document.getElementById('addCoursePopup').classList.add('active');
+}
+
+function showEditCoursePopup(id) {
+  // Populate form with existing data
+  const course = courses.find(c => c.id === id);
+  document.getElementById('editCourseId').value = course.id;
+  document.getElementById('editCourseTitre').value = course.titre;
+  document.getElementById('editCourseDescription').value = course.description;
+  
+  document.getElementById('editCoursePopup').classList.add('active');
+}
+
+// Hide popup functions
+function hidePopup(popupId) {
+  document.getElementById(popupId).classList.remove('active');
+}
+
+// Event listeners for closing popups
+document.getElementById('closeEditStudentPopup').addEventListener('click', () => hidePopup('editStudentPopup'));
+document.getElementById('closeAddStudentPopup').addEventListener('click', () => hidePopup('addStudentPopup'));
+document.getElementById('closeEditTeacherPopup').addEventListener('click', () => hidePopup('editTeacherPopup'));
+document.getElementById('closeAddTeacherPopup').addEventListener('click', () => hidePopup('addTeacherPopup'));
+document.getElementById('closeEditCoursePopup').addEventListener('click', () => hidePopup('editCoursePopup'));
+document.getElementById('closeAddCoursePopup').addEventListener('click', () => hidePopup('addCoursePopup'));
+
+// Form submit handlers
 document.getElementById('addStudentForm').addEventListener('submit', async (event) => {
   event.preventDefault();
-  try {
-      const nom = document.getElementById('studentNom').value;
-      const prenom = document.getElementById('studentPrenom').value;
-      const email = document.getElementById('studentEmail').value;
-      await fetch('/students', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nom, prenom, email })
-      });
-      fetchData(); // Refresh data
-  } catch (error) {
-      console.error('Error adding student:', error);
+  const student = {
+    nom: document.getElementById('studentNom').value,
+    prenom: document.getElementById('studentPrenom').value,
+    email: document.getElementById('studentEmail').value
+  };
+  const response = await fetch('/students', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(student)
+  });
+  if (response.ok) {
+    hidePopup('addStudentPopup');
+    fetchData();
+  } else {
+    console.error('Error adding student');
+  }
+});
+
+document.getElementById('editStudentForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const student = {
+    id: document.getElementById('editStudentId').value,
+    nom: document.getElementById('editStudentNom').value,
+    prenom: document.getElementById('editStudentPrenom').value,
+    email: document.getElementById('editStudentEmail').value
+  };
+  const response = await fetch(`/students/${student.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(student)
+  });
+  if (response.ok) {
+    hidePopup('editStudentPopup');
+    fetchData();
+  } else {
+    console.error('Error updating student');
   }
 });
 
 document.getElementById('addTeacherForm').addEventListener('submit', async (event) => {
   event.preventDefault();
-  try {
-      const nom = document.getElementById('teacherNom').value;
-      const prenom = document.getElementById('teacherPrenom').value;
-      const email = document.getElementById('teacherEmail').value;
-      await fetch('/teachers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nom, prenom, email })
-      });
-      fetchData(); // Refresh data
-  } catch (error) {
-      console.error('Error adding teacher:', error);
+  const teacher = {
+    nom: document.getElementById('teacherNom').value,
+    prenom: document.getElementById('teacherPrenom').value,
+    email: document.getElementById('teacherEmail').value
+  };
+  const response = await fetch('/teachers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(teacher)
+  });
+  if (response.ok) {
+    hidePopup('addTeacherPopup');
+    fetchData();
+  } else {
+    console.error('Error adding teacher');
+  }
+});
+
+document.getElementById('editTeacherForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const teacher = {
+    id: document.getElementById('editTeacherId').value,
+    nom: document.getElementById('editTeacherNom').value,
+    prenom: document.getElementById('editTeacherPrenom').value,
+    email: document.getElementById('editTeacherEmail').value
+  };
+  const response = await fetch(`/teachers/${teacher.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(teacher)
+  });
+  if (response.ok) {
+    hidePopup('editTeacherPopup');
+    fetchData();
+  } else {
+    console.error('Error updating teacher');
   }
 });
 
 document.getElementById('addCourseForm').addEventListener('submit', async (event) => {
   event.preventDefault();
-  try {
-      const titre = document.getElementById('courseTitre').value;
-      const description = document.getElementById('courseDescription').value;
-      const enseignant_id = parseInt(document.getElementById('courseEnseignantId').value);
-      await fetch('/courses', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ titre, description, enseignant_id })
-      });
-      fetchData(); // Refresh data
-  } catch (error) {
-      console.error('Error adding course:', error);
+  const course = {
+    titre: document.getElementById('courseTitre').value,
+    description: document.getElementById('courseDescription').value
+  };
+  const response = await fetch('/courses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(course)
+  });
+  if (response.ok) {
+    hidePopup('addCoursePopup');
+    fetchData();
+  } else {
+    console.error('Error adding course');
+  }
+});
+
+document.getElementById('editCourseForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const course = {
+    id: document.getElementById('editCourseId').value,
+    titre: document.getElementById('editCourseTitre').value,
+    description: document.getElementById('editCourseDescription').value
+  };
+  const response = await fetch(`/courses/${course.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(course)
+  });
+  if (response.ok) {
+    hidePopup('editCoursePopup');
+    fetchData();
+  } else {
+    console.error('Error updating course');
   }
 });
 
 document.getElementById('enrollForm').addEventListener('submit', async (event) => {
   event.preventDefault();
-  try {
-      const etudiant_id = parseInt(document.getElementById('enrollStudentId').value);
-      const cours_id = parseInt(document.getElementById('enrollCourseId').value);
-      const date_inscription = document.getElementById('enrollDate').value;
-      await fetch('/enroll', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ etudiant_id, cours_id, date_inscription })
-      });
-      fetchData(); // Refresh data
-  } catch (error) {
-      console.error('Error enrolling student:', error);
+  const enrollment = {
+    studentId: document.getElementById('enrollStudentId').value,
+    courseId: document.getElementById('enrollCourseId').value,
+    date: document.getElementById('enrollDate').value
+  };
+  const response = await fetch('/enrollments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(enrollment)
+  });
+  if (response.ok) {
+    fetchData();
+  } else {
+    console.error('Error enrolling student');
   }
 });
 
-// Functions to delete entities
-async function deleteStudent(id) {
-  try {
-      await fetch(`/students/${id}`, { method: 'DELETE' });
-      fetchData(); // Refresh data
-  } catch (error) {
-      console.error('Error deleting student:', error);
-  }
-}
-
-async function deleteTeacher(id) {
-  try {
-      await fetch(`/teachers/${id}`, { method: 'DELETE' });
-      fetchData(); // Refresh data
-  } catch (error) {
-      console.error('Error deleting teacher:', error);
-  }
-}
-
-async function deleteCourse(id) {
-  try {
-      await fetch(`/courses/${id}`, { method: 'DELETE' });
-      fetchData(); // Refresh data
-  } catch (error) {
-      console.error('Error deleting course:', error);
-  }
-}
-
-// Functions to handle edits (show pre-filled forms for editing)
-function editStudent(id, nom, prenom, email) {
-  document.getElementById('studentNom').value = nom;
-  document.getElementById('studentPrenom').value = prenom;
-  document.getElementById('studentEmail').value = email;
-  // Add functionality to save changes if needed
-}
-
-function editTeacher(id, nom, prenom, email) {
-  document.getElementById('teacherNom').value = nom;
-  document.getElementById('teacherPrenom').value = prenom;
-  document.getElementById('teacherEmail').value = email;
-  // Add functionality to save changes if needed
-}
-
-function editCourse(id, titre, description, enseignant_nom, enseignant_prenom) {
-  document.getElementById('courseTitre').value = titre;
-  document.getElementById('courseDescription').value = description;
-  document.getElementById('courseEnseignantId').value = enseignant_id; // This might need adjustment to select the correct option
-  // Add functionality to save changes if needed
-}
-
-// Load data on page load
-window.onload = fetchData;
+// Initial data load
+fetchData();
