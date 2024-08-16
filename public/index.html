@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Management</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans">
+  <div class="container mx-auto p-6">
+    <h1 class="text-4xl font-bold mb-6">School Management System</h1>
+
+    <!-- Students Section -->
+    <section class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Students</h2>
+      <div id="students" class="mb-4"></div>
+      <h3 class="text-2xl font-medium mb-2">Add Student</h3>
+      <form id="addStudentForm" class="bg-white p-6 rounded-lg shadow-md">
+        <input type="text" id="studentNom" placeholder="Name" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" id="studentPrenom" placeholder="Surname" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="email" id="studentEmail" placeholder="Email" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit"
+          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Student</button>
+      </form>
+    </section>
+
+    <!-- Teachers Section -->
+    <section class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Teachers</h2>
+      <div id="teachers" class="mb-4"></div>
+      <h3 class="text-2xl font-medium mb-2">Add Teacher</h3>
+      <form id="addTeacherForm" class="bg-white p-6 rounded-lg shadow-md">
+        <input type="text" id="teacherNom" placeholder="Name" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" id="teacherPrenom" placeholder="Surname" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="email" id="teacherEmail" placeholder="Email" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit"
+          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Teacher</button>
+      </form>
+    </section>
+
+    <!-- Courses Section -->
+    <section class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Courses</h2>
+      <div id="courses" class="mb-4"></div>
+      <h3 class="text-2xl font-medium mb-2">Add Course</h3>
+      <form id="addCourseForm" class="bg-white p-6 rounded-lg shadow-md">
+        <input type="text" id="courseTitre" name="titre" placeholder="Title" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <textarea id="courseDescription" name="description" placeholder="Description" rows="4"
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        <select id="courseEnseignantId" name="enseignant_id" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <!-- Teacher options will be populated by JavaScript -->
+        </select>
+        <button type="submit"
+          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Course</button>
+      </form>
+    </section>
+
+    <!-- Enrollment Section -->
+    <section class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Enroll Student</h2>
+      <form id="enrollForm" class="bg-white p-6 rounded-lg shadow-md">
+        <select id="enrollStudentId" class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <!-- Options will be added dynamically -->
+        </select>
+        <select id="enrollCourseId" class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <!-- Options will be added dynamically -->
+        </select>
+        <input type="date" id="enrollDate" required
+          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit"
+          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Enroll</button>
+      </form>
+    </section>
+
+
+    
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
