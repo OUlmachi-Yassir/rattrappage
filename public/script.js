@@ -24,6 +24,7 @@ async function fetchData() {
         <h3 class="text-xl font-semibold">${student.nom} ${student.prenom}</h3>
         <p>${student.email}</p>
         <button onclick="showEditStudentPopup(${student.id})" class="py-1 px-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 mt-2">Edit</button>
+        <button onclick="deleteStudent(${student.id})" class="py-1 px-2 bg-red-500 text-white rounded-md hover:bg-red-600 mt-2">Delete</button>
       </div>
     `).join('');
 
@@ -34,6 +35,7 @@ async function fetchData() {
         <h3 class="text-xl font-semibold">${teacher.nom} ${teacher.prenom}</h3>
         <p>${teacher.email}</p>
         <button onclick="showEditTeacherPopup(${teacher.id})" class="py-1 px-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 mt-2">Edit</button>
+        <button onclick="deleteTeacher(${teacher.id})" class="py-1 px-2 bg-red-500 text-white rounded-md hover:bg-red-600 mt-2">Delete</button>
       </div>
     `).join('');
 
@@ -45,6 +47,7 @@ async function fetchData() {
         <p>${course.description}</p>
         <p>${getTeacherNameById(course.enseignant_id)}</p>
         <button onclick="showEditCoursePopup(${course.id})" class="py-1 px-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 mt-2">Edit</button>
+        <button onclick="deleteCourse(${course.id})" class="py-1 px-2 bg-red-500 text-white rounded-md hover:bg-red-600 mt-2">Delete</button>
       </div>
     `).join('');
 
@@ -209,7 +212,8 @@ document.getElementById('addCourseForm').addEventListener('submit', async (event
   event.preventDefault();
   const course = {
     titre: document.getElementById('courseTitre').value,
-    description: document.getElementById('courseDescription').value
+    description: document.getElementById('courseDescription').value,
+    enseignant_id: document.getElementById('courseTeacher').value
   };
   const response = await fetch('/courses', {
     method: 'POST',
@@ -229,7 +233,8 @@ document.getElementById('editCourseForm').addEventListener('submit', async (even
   const course = {
     id: document.getElementById('editCourseId').value,
     titre: document.getElementById('editCourseTitre').value,
-    description: document.getElementById('editCourseDescription').value
+    description: document.getElementById('editCourseDescription').value,
+    enseignant_id: document.getElementById('editCourseTeacher').value
   };
   const response = await fetch(`/courses/${course.id}`, {
     method: 'PUT',
@@ -244,24 +249,47 @@ document.getElementById('editCourseForm').addEventListener('submit', async (even
   }
 });
 
-document.getElementById('enrollForm').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const enrollment = {
-    studentId: document.getElementById('enrollStudentId').value,
-    courseId: document.getElementById('enrollCourseId').value,
-    date: document.getElementById('enrollDate').value
-  };
-  const response = await fetch('/enrollments', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(enrollment)
-  });
-  if (response.ok) {
-    fetchData();
-  } else {
-    console.error('Error enrolling student');
+// Function to delete a student
+async function deleteStudent(id) {
+  if (confirm('Are you sure you want to delete this student?')) {
+    const response = await fetch(`/students/${id}`, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      fetchData(); // Refresh data after deletion
+    } else {
+      console.error('Error deleting student');
+    }
   }
-});
+}
 
-// Initial data load
+// Function to delete a teacher
+async function deleteTeacher(id) {
+  if (confirm('Are you sure you want to delete this teacher?')) {
+    const response = await fetch(`/teachers/${id}`, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      fetchData(); // Refresh data after deletion
+    } else {
+      console.error('Error deleting teacher');
+    }
+  }
+}
+
+// Function to delete a course
+async function deleteCourse(id) {
+  if (confirm('Are you sure you want to delete this course?')) {
+    const response = await fetch(`/courses/${id}`, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      fetchData(); // Refresh data after deletion
+    } else {
+      console.error('Error deleting course');
+    }
+  }
+}
+
+// Fetch data initially when the page loads
 fetchData();

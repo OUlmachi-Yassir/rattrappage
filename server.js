@@ -21,7 +21,6 @@ connection.connect(err => {
   console.log('Connected to the database.');
 });
 
-// Define your API routes here
 
 // CRUD routes for Students
 app.get('/students', async (req, res) => {
