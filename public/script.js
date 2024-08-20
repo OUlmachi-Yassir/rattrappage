@@ -9,7 +9,7 @@ async function fetchData() {
     const [studentsRes, teachersRes, coursesRes] = await Promise.all([
       fetch('/students'),
       fetch('/teachers'),
-      fetch('/courses')
+      fetch('/courses'),
     ]);
 
     students = await studentsRes.json();

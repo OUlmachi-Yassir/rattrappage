@@ -1,13 +1,18 @@
 const express = require('express');
 const mysql = require('mysql');
 const path = require('path');
-const Student = require('./models/Student');
-const Teacher = require('./models/Teacher');
-const Course = require('./models/Course');
+const session = require('express-session');
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(session({
+  secret: 'ytoop66', 
+  resave: false,
+  saveUninitialized: true
+}));
 
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -21,155 +26,270 @@ connection.connect(err => {
   console.log('Connected to the database.');
 });
 
-
-// CRUD routes for Students
-app.get('/students', async (req, res) => {
-  try {
-    const students = await Student.getAllStudents(connection);
-    res.json(students);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Serve the login page
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-app.post('/students', async (req, res) => {
-  try {
-    const { nom, prenom, email } = req.body;
-    const student = await Student.addStudent(connection, nom, prenom, email);
-    res.status(201).json(student);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+// Handle login
+app.post('/login', (req, res) => {
+  const { email } = req.body;
+
+  if (email === 'admin@gmail.com') {
+    req.session.authenticated = 'admin';
+    req.session.email = email; // Store email in session
+    return res.redirect('/index.html');
   }
+
+  connection.query('SELECT * FROM etudiants WHERE email = ?', [email], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    if (results.length > 0) {
+      req.session.authenticated = 'student';
+      req.session.email = email; // Store email in session
+      return res.redirect('/studentCourses.html');
+    }
+    res.status(401).send('Unauthorized');
+  });
 });
 
-app.put('/students/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nom, prenom, email } = req.body;
-    await Student.updateStudent(connection, id, nom, prenom, email);
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Middleware to protect routes
+function ensureAuthenticated(role) {
+  return (req, res, next) => {
+    if (req.session && req.session.authenticated === role) {
+      return next();
+    }
+    res.redirect('/login');
+  };
+}
+
+// Serve protected pages
+app.get('/index.html', ensureAuthenticated('admin'), (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.delete('/students/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await Student.deleteStudent(connection, id);
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.get('/studentCourses.html', ensureAuthenticated('student'), (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'studentCourses.html'));
 });
 
-// CRUD routes for Teachers
-app.get('/teachers', async (req, res) => {
-  try {
-    const teachers = await Teacher.getAllTeachers(connection);
-    res.json(teachers);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Serve courses the student is enrolled in
+app.get('/studentCourses', ensureAuthenticated('student'), (req, res) => {
+  const studentEmail = req.session.email; // Use email stored in session for querying
+
+  // Get student ID
+  connection.query('SELECT id FROM etudiants WHERE email = ?', [studentEmail], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+
+    const studentId = results[0].id;
+
+    // Get courses the student is enrolled in
+    connection.query(
+      'SELECT cours.* FROM cours JOIN inscriptions ON cours.id = inscriptions.cours_id WHERE inscriptions.etudiant_id = ?',
+      [studentId],
+      (err, coursesEnrolled) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send('Server error');
+        }
+
+        // Get all available courses that the student is not enrolled in
+        connection.query(
+          'SELECT * FROM cours WHERE id NOT IN (SELECT cours_id FROM inscriptions WHERE etudiant_id = ?)',
+          [studentId],
+          (err, availableCourses) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).send('Server error');
+            }
+
+            res.json({ enrolled: coursesEnrolled, available: availableCourses });
+          }
+        );
+      }
+    );
+  });
 });
 
-app.post('/teachers', async (req, res) => {
-  try {
-    const { nom, prenom, email } = req.body;
-    const teacher = await Teacher.addTeacher(connection, nom, prenom, email);
-    res.status(201).json(teacher);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Handle course enrollment
+app.post('/enroll', ensureAuthenticated('student'), (req, res) => {
+  const { courseId } = req.body;
+  const studentEmail = req.session.email;
+
+  connection.query('SELECT id FROM etudiants WHERE email = ?', [studentEmail], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+
+    const studentId = results[0].id;
+
+    // Insert enrollment record
+    connection.query(
+      'INSERT INTO inscriptions (etudiant_id, cours_id, date_inscription) VALUES (?, ?, NOW())',
+      [studentId, courseId],
+      (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send('Server error');
+        }
+        res.send('Enrolled successfully');
+      }
+    );
+  });
 });
 
-app.put('/teachers/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nom, prenom, email } = req.body;
-    await Teacher.updateTeacher(connection, id, nom, prenom, email);
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// CRUD operations for students
+app.get('/students', ensureAuthenticated('admin'), (req, res) => {
+  connection.query('SELECT * FROM etudiants', (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.json(results);
+  });
 });
 
-app.delete('/teachers/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await Teacher.deleteTeacher(connection, id);
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.post('/students', ensureAuthenticated('admin'), (req, res) => {
+  const { nom, prenom, email } = req.body;
+  connection.query('INSERT INTO etudiants (nom, prenom, email) VALUES (?, ?, ?)', [nom, prenom, email], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.status(201).send('Student added');
+  });
 });
 
-// CRUD routes for Courses
-app.get('/courses', async (req, res) => {
-  try {
-    const courses = await Course.getAllCourses(connection);
-    res.json(courses);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.put('/students/:id', ensureAuthenticated('admin'), (req, res) => {
+  const { id } = req.params;
+  const { nom, prenom, email } = req.body;
+  connection.query('UPDATE etudiants SET nom = ?, prenom = ?, email = ? WHERE id = ?', [nom, prenom, email, id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.send('Student updated');
+  });
 });
 
-app.post('/courses', async (req, res) => {
-  try {
-    const { titre, description, enseignant_id } = req.body;
-    const course = await Course.addCourse(connection, titre, description, enseignant_id);
-    res.status(201).json(course);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.delete('/students/:id', ensureAuthenticated('admin'), (req, res) => {
+  const { id } = req.params;
+  connection.query('DELETE FROM etudiants WHERE id = ?', [id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.send('Student deleted');
+  });
 });
 
-app.put('/courses/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { titre, description, enseignant_id } = req.body;
-    await Course.updateCourse(connection, id, titre, description, enseignant_id);
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// CRUD operations for teachers
+app.get('/teachers', ensureAuthenticated('admin'), (req, res) => {
+  connection.query('SELECT * FROM enseignants', (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.json(results);
+  });
 });
 
-app.delete('/courses/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await Course.deleteCourse(connection, id);
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.post('/teachers', ensureAuthenticated('admin'), (req, res) => {
+  const { nom, prenom, email } = req.body;
+  connection.query('INSERT INTO enseignants (nom, prenom, email) VALUES (?, ?, ?)', [nom, prenom, email], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.status(201).send('Teacher added');
+  });
 });
 
-// Route to enroll a student in a course
-app.post('/enroll', async (req, res) => {
-  try {
-    const { etudiant_id, cours_id, date_inscription } = req.body;
-    connection.query('INSERT INTO inscriptions (etudiant_id, cours_id, date_inscription) VALUES (?, ?, ?)', [etudiant_id, cours_id, date_inscription], (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id: results.insertId, etudiant_id, cours_id, date_inscription });
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.put('/teachers/:id', ensureAuthenticated('admin'), (req, res) => {
+  const { id } = req.params;
+  const { nom, prenom, email } = req.body;
+  connection.query('UPDATE enseignants SET nom = ?, prenom = ?, email = ? WHERE id = ?', [nom, prenom, email, id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.send('Teacher updated');
+  });
 });
 
-// Route to get available courses
-app.get('/available-courses', async (req, res) => {
-  try {
-    const courses = await Course.getAllCourses(connection);
-    res.json(courses);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.delete('/teachers/:id', ensureAuthenticated('admin'), (req, res) => {
+  const { id } = req.params;
+  connection.query('DELETE FROM enseignants WHERE id = ?', [id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.send('Teacher deleted');
+  });
 });
 
-// Start the server
+// CRUD operations for courses
+app.get('/courses', ensureAuthenticated('admin'), (req, res) => {
+  connection.query('SELECT * FROM cours', (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.json(results);
+  });
+});
+
+app.post('/courses', ensureAuthenticated('admin'), (req, res) => {
+  const { titre, description, enseignant_id } = req.body;
+  connection.query('INSERT INTO cours (titre, description, enseignant_id) VALUES (?, ?, ?)', [titre, description, enseignant_id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.status(201).send('Course added');
+  });
+});
+
+app.put('/courses/:id', ensureAuthenticated('admin'), (req, res) => {
+  const { id } = req.params;
+  const { titre, description, enseignant_id } = req.body;
+  connection.query('UPDATE cours SET titre = ?, description = ?, enseignant_id = ? WHERE id = ?', [titre, description, enseignant_id, id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.send('Course updated');
+  });
+});
+
+app.delete('/courses/:id', ensureAuthenticated('admin'), (req, res) => {
+  const { id } = req.params;
+  connection.query('DELETE FROM cours WHERE id = ?', [id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.send('Course deleted');
+  });
+});
+
+// Logout
+app.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Server error');
+    }
+    res.redirect('/login');
+  });
+});
+
 const PORT = process.env.PORT || 8800;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
