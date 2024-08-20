@@ -15,7 +15,6 @@ async function fetchData() {
     students = await studentsRes.json();
     teachers = await teachersRes.json();
     courses = await coursesRes.json();
-    console.log('Courses:', courses);
 
     // Display students
     const studentsContainer = document.getElementById('students');
@@ -51,11 +50,6 @@ async function fetchData() {
       </div>
     `).join('');
 
-    // Populate enrollment dropdowns
-    const enrollStudentId = document.getElementById('enrollStudentId');
-    const enrollCourseId = document.getElementById('enrollCourseId');
-    enrollStudentId.innerHTML = students.map(student => `<option value="${student.id}">${student.nom} ${student.prenom}</option>`).join('');
-    enrollCourseId.innerHTML = courses.map(course => `<option value="${course.id}">${course.titre}</option>`).join('');
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -64,7 +58,8 @@ async function fetchData() {
 // Function to get teacher name by ID
 function getTeacherNameById(id) {
   const teacher = teachers.find(teacher => teacher.id === id);
-  return teacher ? `${teacher.nom} ${teacher.prenom}` : 'Unknown';
+  
+  return teacher ? `${teacher.nom} ${teacher.prenom}` : 'Without Teacher';
 }
 
 // Show popup functions
@@ -109,8 +104,18 @@ function showEditCoursePopup(id) {
   document.getElementById('editCourseTitre').value = course.titre;
   document.getElementById('editCourseDescription').value = course.description;
   
+  // Populate the teacher dropdown
+  const teacherDropdown = document.getElementById('editCourseTeacher');
+  teacherDropdown.innerHTML = teachers.map(teacher => `
+    <option value="${teacher.id}" ${teacher.id === course.enseignant_id ? 'selected' : ''}>
+      ${teacher.nom} ${teacher.prenom}
+    </option>
+  `).join('');
+
   document.getElementById('editCoursePopup').classList.add('active');
 }
+
+
 
 // Hide popup functions
 function hidePopup(popupId) {
@@ -208,6 +213,7 @@ document.getElementById('editTeacherForm').addEventListener('submit', async (eve
   }
 });
 
+
 document.getElementById('addCourseForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const course = {
@@ -249,47 +255,40 @@ document.getElementById('editCourseForm').addEventListener('submit', async (even
   }
 });
 
-// Function to delete a student
+
+// Delete functions
 async function deleteStudent(id) {
   if (confirm('Are you sure you want to delete this student?')) {
-    const response = await fetch(`/students/${id}`, {
-      method: 'DELETE',
-    });
+    const response = await fetch(`/students/${id}`, { method: 'DELETE' });
     if (response.ok) {
-      fetchData(); // Refresh data after deletion
+      fetchData();
     } else {
       console.error('Error deleting student');
     }
   }
 }
 
-// Function to delete a teacher
 async function deleteTeacher(id) {
   if (confirm('Are you sure you want to delete this teacher?')) {
-    const response = await fetch(`/teachers/${id}`, {
-      method: 'DELETE',
-    });
+    const response = await fetch(`/teachers/${id}`, { method: 'DELETE' });
     if (response.ok) {
-      fetchData(); // Refresh data after deletion
+      fetchData();
     } else {
       console.error('Error deleting teacher');
     }
   }
 }
 
-// Function to delete a course
 async function deleteCourse(id) {
   if (confirm('Are you sure you want to delete this course?')) {
-    const response = await fetch(`/courses/${id}`, {
-      method: 'DELETE',
-    });
+    const response = await fetch(`/courses/${id}`, { method: 'DELETE' });
     if (response.ok) {
-      fetchData(); // Refresh data after deletion
+      fetchData();
     } else {
       console.error('Error deleting course');
     }
   }
 }
 
-// Fetch data initially when the page loads
+// Initialize
 fetchData();

@@ -120,25 +120,34 @@
       <form id="addCourseForm">
         <input type="text" id="courseTitre" placeholder="Course Title" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
         <input type="text" id="courseDescription" placeholder="Description" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <select id="courseTeacher" class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+          <!-- Options will be populated dynamically -->
+        </select>
         <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add</button>
         <button type="button" id="closeAddCoursePopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
       </form>
     </div>
   </div>
+  
 
   <!-- Edit Course Popup -->
-  <div id="editCoursePopup" class="popup fixed inset-0 items-center justify-center bg-gray-900 bg-opacity-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-      <h3 class="text-2xl font-semibold mb-4">Edit Course</h3>
-      <form id="editCourseForm">
-        <input type="hidden" id="editCourseId">
-        <input type="text" id="editCourseTitre" placeholder="Course Title" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
-        <input type="text" id="editCourseDescription" placeholder="Description" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
-        <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
-        <button type="button" id="closeEditCoursePopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
-      </form>
-    </div>
+  
+<div id="editCoursePopup" class="popup fixed inset-0 items-center justify-center bg-gray-900 bg-opacity-50">
+  <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+    <h3 class="text-2xl font-semibold mb-4">Edit Course</h3>
+    <form id="editCourseForm">
+      <input type="hidden" id="editCourseId">
+      <input type="text" id="editCourseTitre" placeholder="Title" required class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+      <textarea id="editCourseDescription" placeholder="Description" required class="w-full mb-4 p-2 border border-gray-300 rounded-md"></textarea>
+      <select id="editCourseTeacher" class="w-full mb-4 p-2 border border-gray-300 rounded-md">
+        <!-- Populate this with teacher options -->
+      </select>
+      <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+      <button type="button" id="closeEditCoursePopup" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 mt-2">Cancel</button>
+    </form>
   </div>
+</div>
+
 
   
   
