@@ -16,11 +16,13 @@
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans">
 <div class="justify-between flex items-center p-10">
-  <h1>Welcome to the Admin Page</h1>
-  <form action="/logout" method="get" style="margin-top: 20px;">
-    <button type="submit" style="padding: 10px 20px; background-color: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer;">
-        Logout
-    </button>
+  <h1 class="text-4xl font-extrabold text-gray-800 bg-blue-200 p-4 rounded-lg shadow-md">
+    Welcome to the Admin Page
+</h1>
+<form action="/logout" method="get">
+  <button type="submit" class="px-4 py-2 text-xl bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300">
+      Logout
+  </button>
 </form>
 </div>
   
@@ -50,23 +52,7 @@
       <button onclick="showAddCoursePopup()"
         class="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">Add Course</button>
     </section>
-
-    <!-- Enrollment Section -->
-    <section class="mb-12">
-      <h2 class="text-3xl font-semibold mb-4">Enroll Student</h2>
-      <form id="enrollForm" class="bg-white p-6 rounded-lg shadow-md">
-        <select id="enrollStudentId" class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <!-- Options will be added dynamically -->
-        </select>
-        <select id="enrollCourseId" class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <!-- Options will be added dynamically -->
-        </select>
-        <input type="date" id="enrollDate" required
-          class="w-full mb-4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button type="submit"
-          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Enroll</button>
-      </form>
-    </section>
+    
   </div>
 
   <!-- Edit Student Popup -->

@@ -7,96 +7,117 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <body class="bg-gray-200 min-h-screen flex items-center justify-center">
-        <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">Your Courses</h1>
-                <!-- Logout Button -->
-                <form action="/logout" method="get">
-                    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300">
-                        Logout
-                    </button>
-                </form>
-            </div>
-    
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Enrolled Courses</h2>
-                <ul id="enrolled-courses" class="space-y-2">
-                    <!-- Enrolled courses will be dynamically added here -->
-                </ul>
-            </div>
-    
-            <div>
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Available Courses</h2>
-                <ul id="available-courses" class="space-y-2">
-                    <!-- Available courses will be dynamically added here -->
-                </ul>
-            </div>
+<body class="bg-gray-200 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Your Courses</h1>
+            <!-- Logout Button -->
+            <form action="/logout" method="get">
+                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300">
+                    Logout
+                </button>
+            </form>
         </div>
 
-    <script >
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Enrolled Courses</h2>
+            <ul id="enrolled-courses" class="space-y-2">
+                <!-- Enrolled courses will be dynamically added here -->
+            </ul>
+        </div>
+
+        <div>
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Available Courses</h2>
+            <ul id="available-courses" class="space-y-2">
+                <!-- Available courses will be dynamically added here -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modal Structure -->
+    <div id="course-modal" class="fixed flex  inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-3/4 max-w-lg">
+            <h3 id="modal-course-title" class="text-2xl font-bold mb-4"></h3>
+            <p id="modal-course-description" class="text-gray-700 mb-4"></p>
+            <button id="close-modal" class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300">Close</button>
+        </div>
+    </div>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-    fetch('/studentCourses')
-        .then(response => response.json())
-        .then(data => {
-            const enrolledCoursesList = document.getElementById('enrolled-courses');
-            const availableCoursesList = document.getElementById('available-courses');
+            fetch('/studentCourses')
+                .then(response => response.json())
+                .then(data => {
+                    const enrolledCoursesList = document.getElementById('enrolled-courses');
+                    const availableCoursesList = document.getElementById('available-courses');
 
-            // Populate enrolled courses
-            data.enrolled.forEach(course => {
-                const li = document.createElement('li');
-                li.textContent = course.titre;
-                enrolledCoursesList.appendChild(li);
-            });
+                    // Function to handle click and show modal
+                    function showCourseDetails(course) {
+                        const modal = document.getElementById('course-modal');
+                        document.getElementById('modal-course-title').textContent = course.titre;
+                        document.getElementById('modal-course-description').textContent = course.description;
+                        modal.classList.remove('hidden');
+                    }
 
-            // Populate available courses
-        data.available.forEach(course => {
-            const li = document.createElement('li');
-            li.textContent = course.titre;
+                    // Populate enrolled courses
+                    data.enrolled.forEach(course => {
+                        const li = document.createElement('li');
+                        li.textContent = course.titre;
+                        li.className = 'cursor-pointer hover:text-blue-600';
+                        li.addEventListener('click', () => showCourseDetails(course));
+                        enrolledCoursesList.appendChild(li);
+                    });
 
-            const enrollButton = document.createElement('button');
-            enrollButton.textContent = 'Enroll';
-            
-            // Style the button using Tailwind CSS
-            enrollButton.className = 'px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 ease-in-out';
-            enrollButton.style.marginLeft = '10px';
-            
-            enrollButton.addEventListener('click', () => {
-                enrollInCourse(course.id);
-            });
+                    // Populate available courses
+                    data.available.forEach(course => {
+                        const li = document.createElement('li');
+                        li.textContent = course.titre;
+                        li.className = 'flex justify-between cursor-pointer hover:text-blue-600';
+                        li.addEventListener('click', () => showCourseDetails(course));
 
-            li.appendChild(enrollButton);
-            availableCoursesList.appendChild(li);
+                        const enrollButton = document.createElement('button');
+                        enrollButton.textContent = 'Enroll';
+                        enrollButton.className = 'ml-4 px-4 py-1 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition duration-300 ease-in-out';
+                        enrollButton.addEventListener('click', (event) => {
+                            event.stopPropagation();  // Prevent triggering the course details modal
+                            enrollInCourse(course.id);
+                        });
+
+                        li.appendChild(enrollButton);
+                        availableCoursesList.appendChild(li);
+                    });
+
+                    // Handle modal close
+                    document.getElementById('close-modal').addEventListener('click', () => {
+                        document.getElementById('course-modal').classList.add('hidden');
+                    });
+
+                })
+                .catch(error => {
+                    console.error('Error fetching courses:', error);
+                });
         });
 
-        })
-        .catch(error => {
-            console.error('Error fetching courses:', error);
-        });
-});
-
-function enrollInCourse(courseId) {
-    fetch('/enroll', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ courseId: courseId })
-    })
-    .then(response => {
-        if (response.ok) {
-            alert('Enrolled successfully!');
-            location.reload(); // Refresh the page to show updated course lists
-        } else {
-            alert('Failed to enroll.');
+        function enrollInCourse(courseId) {
+            fetch('/enroll', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ courseId: courseId })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Enrolled successfully!');
+                    location.reload(); // Refresh the page to show updated course lists
+                } else {
+                    alert('Failed to enroll.');
+                }
+            })
+            .catch(error => {
+                console.error('Error enrolling in course:', error);
+            });
         }
-    })
-    .catch(error => {
-        console.error('Error enrolling in course:', error);
-    });
-}
-
     </script>
 </body>
 </html>
